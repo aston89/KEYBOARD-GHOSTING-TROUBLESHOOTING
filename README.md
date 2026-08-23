@@ -1,10 +1,12 @@
 
 # Mechanical Keyboard Ghosting with High Polling Rate on Windows
 
+---
+
 ## Table of Contents:
 
-- 1a Introduction
-- 1b Symptoms
+- 1a Introduction & disclaimer
+- 1b Symptoms & quick solution (fast startup)
 - 2 Understanding "KeyboardDataQueueSize" and the Myth of Latency
 - 3 Different Types of Keyboard Input and Why Ghosting Differs in Games
 - 4 The Hidden Culprit: Accessibility Flags That Stay Active (Even When You Think They're Off)
@@ -18,19 +20,33 @@
 
 ---
 
-## 1a. Introduction
+## 1a. Introduction & disclaimer
 
 Mechanical keyboards, especially those running at high polling rates (1000 Hz or above), offer extremely fast and precise input. However, they can also expose subtle issues within the Windows input stack that lead to “ghosting”, unintended or spurious key events that confuse the system and cause erratic behavior.
 
+This repository is primarily a collection of **workarounds discovered while troubleshooting a very specific legacy hardware configuration**, not a universal explanation of keyboard ghosting on Windows.
+Some of the procedures described here are intentionally aggressive and were useful because they mitigated symptoms in a system operating close to the limits of an older PCI/USB/firmware stack. They should therefore be treated as **diagnostic and/or situational workarounds**, not as generally recommended optimizations.
+
+The original failure involved at least two distinct hardware-related factors:
+1. **Legacy PCI / X-Fi DMA interaction** - Certain PCI X-Fi sound cards were interfering with DMA behavior on the affected system. Switching from legacy BIOS/CSM to pure UEFI reduced the problem in some configurations, but did not always eliminate it. As a result, several Windows and device-level workarounds could appear to “fix” keyboard input even though they were actually mitigating a deeper PCI/DMA interaction.
+2. **Keyboard electrical / HID interaction** - The keyboard itself exhibited a reproducible failure under a particular combination of NKRO enabled, additional HID functionality and all keyboard LEDs forced continuously to green (try to change them to another color, green is considered not safe in some keyboard models).
+
 ---
 
-## 1b. Symptoms
+## 1b. Symptoms & quick solution (fast startup)
 
 Users experiencing this issue typically report:
 - Random or stuck **WinKey activation**, causing the Start Menu to open unexpectedly.  
 - Intermittent **ghosted keypresses** or repeated inputs that don’t correspond to actual physical key activity.  
 - Problems more common in browsers and traditional desktop apps that rely on standard Windows keyboard input.  
 - Games that use RawInput or DirectInput bypass the problem entirely, explaining why these glitches do not appear in most modern titles.
+
+### Windows Fast Startup
+For older systems with legacy USB/HID controllers and firmware, **Windows Fast Startup should also be disabled during troubleshooting**.
+Fast Startup does not perform a completely fresh kernel initialization on every shutdown. After major Windows/security updates, this can occasionally leave legacy USB/HID devices in an inconsistent initialization or enumeration state on older hardware.
+If USB devices behave differently after an update, or if the keyboard works correctly after a full power-off but not after a normal shutdown/restart cycle, disable Fast Startup and perform a **true cold boot** before changing drivers or registry settings.
+This is particularly relevant when troubleshooting systems where USB enumeration, HID devices, PCI devices, and legacy firmware interact in unusual ways.
+**Fast Startup is therefore a troubleshooting precaution for legacy configurations, not a claim that it normally causes keyboard ghosting.**
 
 ---
 
