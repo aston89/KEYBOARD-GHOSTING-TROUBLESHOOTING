@@ -274,4 +274,157 @@ Symptom: high IRQ load → dropped keystrokes on high-polling mechanical keyboar
 > **Note:** Any PCI/PCIe device generating high interrupts or using shared buses can interfere with high-priority input devices. The X-Fi (emu20k2) is the most well-known case up to date expecially under win10 22h2 and upper (completely broken drivers), but these other hardware types can cause similar issues.
 > These hardware tweaks, combined with software-side priority adjustments and input filtering, can dramatically improve stability on high-polling-rate keyboards.
 
+--- 
+
+
+## 12. Problem still persists? try Windows FilterKeys to reduce mechanical switch hattering 
+
+Mechanical keyboard switches use physical electrical contacts. During actuation or release, these contacts may temporarily oscillate between open and closed states instead of producing one clean transition. This phenomenon is known as **contact bounce** or **switch chatter**.
+
+A single physical keypress can therefore produce multiple electrical transitions:
+
+```text
+Ideal:
+KEY DOWN ---------------------- KEY UP
+
+Contact chatter:
+KEY DOWN -> UP -> DOWN -> UP -> DOWN -> KEY UP
+```
+
+The duration and intensity of contact bounce can vary depending on the switch design, manufacturing tolerances, wear, actuation speed and pressing technique.
+
+Normally, the keyboard's microcontroller and firmware should debounce the switch matrix before transmitting stable HID reports to Windows. If the firmware does not adequately suppress these transitions, Windows may receive multiple key events corresponding to a single physical action.
+
+### 12.1 Using Windows FilterKeys as a software mitigation
+
+Windows provides an accessibility feature called **FilterKeys**, which includes three relevant functions:
+
+- **SlowKeys:** delays acceptance of a keypress.
+- **RepeatKeys:** controls the initial repeat delay and subsequent key-repeat interval.
+- **BounceKeys:** rejects a subsequent press of the same key if it occurs too soon after the previous release.
+
+BounceKeys can be useful as a software-level mitigation when repeated press/release transitions are occurring within a very short interval.
+
+For example, with a 32 ms BounceKeys interval:
+
+```text
+KEY DOWN       Accepted
+KEY UP         Accepted
+KEY DOWN       Rejected (inside 32 ms window)
+KEY UP
+KEY DOWN       Accepted (after the interval)
+```
+
+This can suppress certain rapid repeated transitions before they become additional accepted keystrokes at the Windows accessibility layer.
+
+**Important:** BounceKeys is not an electrical debounce circuit and does not modify the keyboard firmware. It cannot clean raw electrical signals, change USB polling behaviour, prevent HID/KBDCLASS queue overflows, or guarantee that an isolated spurious key-down event will be rejected.
+
+Its effectiveness depends on the actual sequence and timing of the events received by Windows.
+
+### 12.2 RepeatKeys and BounceKeys are alternative operating modes
+
+The Windows `FILTERKEYS` structure exposes the following parameters:
+
+| Parameter | Description |
+|---|---|
+| `iWaitMSec` | Minimum key-hold duration before acceptance (SlowKeys) |
+| `iDelayMSec` | Time before the first automatic key repetition |
+| `iRepeatMSec` | Interval between subsequent repetitions |
+| `iBounceMSec` | Minimum interval after release before another press of the same key is accepted |
+
+RepeatKeys and BounceKeys use different configurations and cannot be combined through the documented `FILTERKEYS` structure.
+
+RepeatKeys is intended for users who want customized key-repeat behaviour while holding a key. BounceKeys is intended for suppressing rapid repeated presses of the same key.
+
+The supplied configurator allows the user to switch between these modes without manually editing registry values.
+
+### 12.3 Included configuration utility
+
+Two files are provided:
+
+```text
+FilterKeys.cmd
+Set-FilterKeys.ps1
+```
+
+Keep both files in the same directory.
+
+Run `FilterKeys.cmd` from the Windows desktop session. Administrative privileges are normally unnecessary because the configuration applies to the current user.
+
+The CMD interface provides the following options:
+
+| Option | Description |
+|---|---|
+| Windows Standard | Disables FilterKeys and returns to normal Windows keyboard-repeat handling |
+| RepeatKeys | Configures key-repeat timing |
+| BounceKeys | Enables the software anti-bounce interval |
+| Read Current Configuration | Displays the actual runtime FilterKeys configuration |
+| Exit | Exits without changing the current configuration |
+
+The CMD file provides editable defaults for each mode.
+
+**RepeatKeys example:**
+
+```text
+iWaitMSec   = 0 ms
+iDelayMSec  = 250 ms
+iRepeatMSec = 50 ms
+iBounceMSec = 0 ms
+```
+
+This configuration accepts keypresses immediately, starts automatic repetition after 250 ms, and repeats every 50 ms.
+
+The supplied implementation allows `iWaitMSec = 0` and verifies the resulting runtime values through `SPI_GETFILTERKEYS`. Windows documentation describes stricter nonzero requirements for some combinations; therefore, the actual runtime read-back is authoritative for verifying whether the requested configuration was retained on a particular system.
+
+**BounceKeys example:**
+
+```text
+iWaitMSec   = 0 ms
+iDelayMSec  = 0 ms
+iRepeatMSec = 0 ms
+iBounceMSec = 32 ms
+```
+
+This disables RepeatKeys and SlowKeys and applies a 32 ms interval for subsequent presses of the same key.
+
+The interval can be customized directly in the CMD interface, without modifying the PowerShell implementation.
+
+### 12.4 Audible feedback for input diagnostics
+
+The utility preserves the existing `FKF_CLICKON` flag when changing FilterKeys parameters.
+
+When enabled, Windows produces an audible click when a key is pressed or accepted.
+
+This feedback can be useful during troubleshooting:
+
+- A single click during a short physical tap is the expected behaviour.
+- Multiple closely spaced clicks during one short physical action may indicate multiple key events being processed.
+- Additional clicks during a sustained press may simply correspond to normal RepeatKeys activity.
+
+For diagnostic testing, setting `iWaitMSec = 0` avoids the additional SlowKeys acceptance stage and its associated second click.
+
+**Audible feedback is an indication of Windows-level key processing, not a direct measurement of the switch's electrical contacts.** Multiple clicks alone do not prove that a physical switch is defective.
+
+### 12.5 Recommended troubleshooting procedure
+
+1. Enable FilterKeys and audible feedback.
+2. Start with RepeatKeys or BounceKeys according to the desired operating mode.
+3. Test individual keys using both fast and slow actuation.
+4. Compare the audible feedback between different switches.
+5. Pay particular attention to switches that produce multiple clicks during a single short press.
+6. If an unintended modifier combination occurs, correlate the event with the observed key behaviour.
+
+If BounceKeys reduces the occurrence of repeated inputs, this suggests that the symptom is sensitive to rapid repeated key transitions. It does not independently establish whether the original source is the mechanical switch, keyboard firmware, USB receiver or Windows input stack.
+
+For a definitive hardware-level correction, proper switch debouncing should take place in the keyboard's own electronics or firmware, before HID reports are transmitted to the host.
+
+### 12.6 Technical references
+
+- [Microsoft Learn – FILTERKEYS structure](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-filterkeys)
+- [Microsoft Learn – SystemParametersInfo](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow)
+- [QMK Firmware – Contact bounce and debounce algorithms](https://docs.qmk.fm/feature_debounce_type)
+
+
+
+
 
