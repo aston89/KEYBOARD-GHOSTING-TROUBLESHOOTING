@@ -3,20 +3,21 @@
 
 ---
 
-## Table of Contents:
+## Table of Contents
 
-- 1a Introduction & disclaimer
-- 1b Symptoms & quick solution (fast startup)
-- 2 Understanding "KeyboardDataQueueSize" and the Myth of Latency
-- 3 Different Types of Keyboard Input and Why Ghosting Differs in Games
-- 4 The Hidden Culprit: Accessibility Flags That Stay Active (Even When You Think They're Off)
-- 5 keyboardfilter.sys: The Silent Hardware Filter You (Probably) Don’t Need
-- 6 Preventing USB Polling Rate Drifting and Power Management workarounds to reduce input lag
-- 7 Other Potential Causes and Considerations
-- 8 5KRO & 6KRO vs NKRO: Why "Less" Is Sometimes Better
-- 9 EXTRA step : Set TextInputHost.exe to High Priority at User Logon
-- 10 Problem still persists? Check the keyboard.
-- 11 Problem still persists? Check your hardware (peripherals and more). 
+- [1a. Introduction & disclaimer](#1a-introduction--disclaimer)
+- [1b. Symptoms & quick solution (fast startup)](#1b-symptoms--quick-solution-fast-startup)
+- [2. Understanding "KeyboardDataQueueSize" and the Myth of Latency](#2-understanding-keyboarddataqueuesize-and-the-myth-of-latency)
+- [3. Different Types of Keyboard Input and Why Ghosting Differs in Games](#3-different-types-of-keyboard-input-and-why-ghosting-differs-in-games)
+- [4. The Hidden Culprit: Accessibility Flags That Stay Active (Even When You Think They're Off)](#4-the-hidden-culprit-accessibility-flags-that-stay-active-even-when-you-think-theyre-off)
+- [5. keyboardfilter.sys: The Silent Hardware Filter You (Probably) Don’t Need](#5-keyboardfiltersys-the-silent-hardware-filter-you-probably-dont-need)
+- [6. Preventing USB Polling Rate Drifting and Power Management Workarounds to Reduce Input Lag](#6-preventing-usb-polling-rate-drifting-and-power-management-workarounds-to-reduce-input-lag)
+- [7. Other Potential Causes and Considerations](#7-other-potential-causes-and-considerations)
+- [8. 5KRO & 6KRO vs NKRO: Why "Less" Is Sometimes Better](#8-5kro--6kro-vs-nkro-why-less-is-sometimes-better)
+- [9. EXTRA step: Set TextInputHost.exe to High Priority at User Logon](#9-extra-step--set-textinputhostexe-to-high-priority-at-user-logon)
+- [10. Problem still persists? Check the keyboard](#10-problem-still-persists-check-the-keyboard)
+- [11. Problem still persists? Check your hardware (peripherals and more)](#11-problem-still-persists-check-your-hardware-peripherals-and-more)
+- [12. Problem still persists? Try Windows FilterKeys to reduce mechanical switch chatter](#12-problem-still-persists-try-windows-filterkeys-to-reduce-mechanical-switch-hattering)
 
 ---
 
@@ -277,7 +278,7 @@ Symptom: high IRQ load → dropped keystrokes on high-polling mechanical keyboar
 --- 
 
 
-## 12. Problem still persists? try Windows FilterKeys to reduce mechanical switch hattering 
+## 12. Problem still persists? try Windows FilterKeys to reduce mechanical switch hattering:
 
 Mechanical keyboard switches use physical electrical contacts. During actuation or release, these contacts may temporarily oscillate between open and closed states instead of producing one clean transition. This phenomenon is known as **contact bounce** or **switch chatter**.
 
