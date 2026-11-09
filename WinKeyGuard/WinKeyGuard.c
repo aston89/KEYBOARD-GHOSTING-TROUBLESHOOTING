@@ -177,7 +177,7 @@ int main(void)
     }
 
     puts("==================================");
-    puts("       WIN STATE GUARD 0.1");
+    puts("       WinKeyGuard 0.1");
     puts("==================================");
     puts("Injected LWIN/RWIN events: BLOCKED");
     puts("Non-injected keyboard events: ALLOWED");
@@ -214,7 +214,7 @@ int main(void)
 
     PrintCounters();
 
-    puts("WinStateGuard stopped.");
+    puts("winkeyguard stopped.");
 
     return 0;
 }
