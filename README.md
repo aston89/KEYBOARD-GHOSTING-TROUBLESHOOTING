@@ -277,7 +277,6 @@ Symptom: high IRQ load → dropped keystrokes on high-polling mechanical keyboar
 
 --- 
 
-
 ## 12. Problem still persists? try Windows FilterKeys to reduce mechanical switch hattering:
 
 Mechanical keyboard switches use physical electrical contacts. During actuation or release, these contacts may temporarily oscillate between open and closed states instead of producing one clean transition. This phenomenon is known as **contact bounce** or **switch chatter**.
@@ -425,7 +424,43 @@ For a definitive hardware-level correction, proper switch debouncing should take
 - [Microsoft Learn – SystemParametersInfo](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow)
 - [QMK Firmware – Contact bounce and debounce algorithms](https://docs.qmk.fm/feature_debounce_type)
 
+---
 
+## 13. Problem still persists? Try WinKeyGuard tool against Windows Update Regressions and Software-Injected Modifier Events:
+
+Not every phantom keypress or apparently stuck modifier is necessarily caused by the physical keyboard. Windows itself can introduce regressions in keyboard handling, hotkey management, input processing and device initialization through cumulative updates.
+
+A particularly interesting example is the July 14, 2026 update **KB5099539** for Windows 10 22H2 ESU. Microsoft explicitly documents a change to hotkey unregister and cleanup behavior:
+
+> This update changes hotkey unregister and cleanup behavior.
+
+Microsoft also acknowledges that, in rare cases, built-in Windows experiences relying on the previous hotkey lifecycle behavior may temporarily stop responding to certain keyboard shortcuts.
+
+Although this documented issue does not explicitly describe phantom keypresses or stuck modifier states, it confirms that Windows updates can modify internal keyboard shortcut handling and introduce input-related regressions.
+
+### Possible software-level causes
+
+When unexpected Windows-key activations appear after a monthly update, consider investigating:
+
+- Changes to Windows hotkey registration and cleanup behavior.
+- Regressions in the Windows keyboard input stack.
+- Third-party keyboard hooks, remapping utilities and software-generated input.
+- Virtual HID devices and kernel-mode keyboard filter drivers.
+- Inconsistent modifier state handling following system or driver initialization.
+
+Do not immediately assume that a keyboard switch, PCB or electrical contact is defective, especially when the problem appears or disappears following specific Windows updates.
+
+### Software-level mitigation: WinKeyGuard
+
+An additional workaround worth considering is WinKeyGuard, a lightweight native Win32 x64 utility written in C.
+
+WinKeyGuard installs a global `WH_KEYBOARD_LL` keyboard hook and selectively blocks LWIN/RWIN events flagged by Windows with `LLKHF_INJECTED`, while allowing events not flagged as injected to pass through normally.
+
+This provides a simple software-level filtering mechanism for unwanted injected Windows-key events without installing kernel drivers, modifying the registry or permanently changing keyboard configuration.
+
+In one troubleshooting setup, keeping WinKeyGuard active coincided with the complete disappearance of recurring phantom Windows-key activations over multiple days of normal use. This is an encouraging observation, not yet proof of the underlying cause.
+
+**Important limitations:** `LLKHF_INJECTED` does not identify every possible software-generated input. Events introduced through kernel-mode drivers or virtual HID devices may not carry this flag. Furthermore, the presence of a low-level keyboard hook can itself affect input timing and hook-chain behavior, so symptom suppression does not necessarily prove that injected events were the original cause.
 
 
 
