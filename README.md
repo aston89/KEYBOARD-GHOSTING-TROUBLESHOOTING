@@ -18,7 +18,7 @@
 - [10. Problem still persists? Check the keyboard](#10-problem-still-persists-check-the-keyboard)
 - [11. Problem still persists? Check your hardware (peripherals and more)](#11-problem-still-persists-check-your-hardware-peripherals-and-more)
 - [12. Problem still persists? Try Windows FilterKeys to reduce mechanical switch chatter](#12-problem-still-persists-try-windows-filterkeys-to-reduce-mechanical-switch-hattering)
-
+- [13. Problem still persists? Try WinKeyGuard tool against Windows Update Regressions and Software-Injected Modifier Events](#13-problem-still-persists-try-winkeyguard-tool-against-windows-update-regressions-and-software-injected-modifier-events)
 ---
 
 ## 1a. Introduction & disclaimer
