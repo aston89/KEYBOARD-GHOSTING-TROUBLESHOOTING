@@ -450,7 +450,7 @@ When unexpected Windows-key activations appear after a monthly update, consider 
 
 Do not immediately assume that a keyboard switch, PCB or electrical contact is defective, especially when the problem appears or disappears following specific Windows updates.
 
-### Software-level mitigation: WinKeyGuard
+### Software-level mitigation: (WinKeyGuard)[https://github.com/aston89/WinKeyGuard/blob/main/README.md]
 
 An additional workaround worth considering is WinKeyGuard, a lightweight native Win32 x64 utility written in C.
 
