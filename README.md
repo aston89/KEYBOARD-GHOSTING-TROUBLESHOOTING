@@ -340,7 +340,7 @@ The supplied configurator allows the user to switch between these modes without 
 
 ### 12.3 Included configuration utility
 
-Two files are provided:
+Two files are provided in [FilterKeys_Configurator](https://github.com/aston89/KEYBOARD-GHOSTING-TROUBLESHOOTING/tree/main/FilterKeys_Configurator) folder:
 
 ```text
 FilterKeys.cmd
