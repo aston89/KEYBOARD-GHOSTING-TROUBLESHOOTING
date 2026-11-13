@@ -1,0 +1,74 @@
+name: Build WinKeyGuard 0.3
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Windows x64
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Configure MSVC x64
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64
+
+      - name: Compile WinKeyGuard
+        shell: cmd
+        run: |
+          cl /nologo /TC /O2 /W4 /MT WinKeyGuard.c /link user32.lib /SUBSYSTEM:CONSOLE /OUT:WinKeyGuard.exe
+
+      - name: Verify Windows x64 executable
+        shell: pwsh
+        run: |
+          $file = ".\WinKeyGuard.exe"
+
+          if (!(Test-Path $file)) {
+              throw "Executable not found."
+          }
+
+          $bytes = [IO.File]::ReadAllBytes($file)
+
+          if ($bytes.Length -lt 64 -or
+              $bytes[0] -ne 0x4D -or
+              $bytes[1] -ne 0x5A) {
+              throw "Invalid DOS executable header."
+          }
+
+          $pe = [BitConverter]::ToInt32($bytes, 0x3C)
+
+          if ($pe -lt 0 -or $pe + 26 -gt $bytes.Length) {
+              throw "Invalid PE header offset."
+          }
+
+          $signature = [BitConverter]::ToUInt32($bytes, $pe)
+          $machine = [BitConverter]::ToUInt16($bytes, $pe + 4)
+          $magic = [BitConverter]::ToUInt16($bytes, $pe + 24)
+
+          if ($signature -ne 0x00004550) {
+              throw "Invalid PE signature."
+          }
+
+          if ($machine -ne 0x8664 -or $magic -ne 0x20B) {
+              throw "Executable is not Windows x64 PE32+."
+          }
+
+          Write-Host "Verified: Windows x64 PE32+"
+          Write-Host "Size: $($bytes.Length) bytes"
+          Get-FileHash $file -Algorithm SHA256
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v7
+        with:
+          name: WinKeyGuard-0.3-Event-Tracker-Windows-x64
+          path: WinKeyGuard.exe
+          if-no-files-found: error
+          retention-days: 14
